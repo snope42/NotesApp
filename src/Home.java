@@ -41,12 +41,79 @@ public class Home extends JFrame {
         this.setMinimumSize(this.getSize());
         this.getContentPane().setBackground(Color.BLACK);
 
+        setup();
+
+        scrollPane.addMouseWheelListener(new MouseAdapter() {
+            @Override
+            public void mouseWheelMoved(MouseWheelEvent e) {
+                newButtonPanel.repaint();
+            }
+        });
+
+        newButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                newButton.setBackground(Color.LIGHT_GRAY);
+            }
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                try {
+                    new Note(Home.this, true, null);
+
+                    createNoteEntry().setText(String.valueOf(App.count));
+
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                newButton.setBackground(null);
+            }
+        });
+
+        this.add(defaultText);
+        this.add(newButtonPanel);
+        this.add(scrollPane);
+
+        this.pack();
+        this.setVisible(true);
+    }
+
+    JButton createNoteEntry() {
+        JButton note = new JButton();
+        note.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                try {
+                    new Note(Home.this, false, note);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        });
+
+        note.setFocusable(false);
+        note.setForeground(Color.BLUE);
+        note.setBackground(null);
+        note.setBorder(new LineBorder(Color.LIGHT_GRAY, 1));
+        note.setPreferredSize(new Dimension(notePanel.getWidth()/3 - 30, Home.super.getHeight()/4 - 35));
+        note.setFont(new Font("aFont", Font.BOLD, 40));
+
+        notePanel.add(note);
+
+        return note;
+    }
+
+    void setup() {
         defaultText.setForeground(Color.LIGHT_GRAY);
         defaultText.setFont(new Font("aFont", Font.BOLD, 25));
         defaultText.setSize(380, 100);
         defaultText.setLocation(this.getWidth()/2 - defaultText.getWidth()/2, this.getHeight()/2 - defaultText.getHeight()/2);
 
-        newButtonPanel.setBounds(this.getWidth() - 30 - 100, 17, 100, 100);
+        newButtonPanel.setBounds(this.getWidth() - 30 - 100, 18, 100, 100);
         newButtonPanel.setLayout(null);
         newButtonPanel.setBackground(null);
         newButtonPanel.add(newButton);
@@ -69,46 +136,6 @@ public class Home extends JFrame {
                 this.thumbDarkShadowColor = Color.BLACK;
             }
         });
-
-        newButton.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                newButton.setBackground(Color.LIGHT_GRAY);
-            }
-
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                try {
-                    new Note(Home.this);
-
-                    JButton note = new JButton();
-
-                    note.setFocusable(false);
-                    note.setForeground(Color.BLUE);
-                    note.setBackground(null);
-                    note.setBorder(new LineBorder(Color.LIGHT_GRAY, 1));
-                    note.setPreferredSize(new Dimension(notePanel.getWidth()/3 - 30, Home.super.getHeight()/4 - 35));
-
-                    notePanel.add(note);
-
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
-                Home.super.setVisible(false);
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                newButton.setBackground(null);
-            }
-        });
-
-        this.add(defaultText);
-        this.add(newButtonPanel);
-        this.add(scrollPane);
-
-        this.pack();
-        this.setVisible(true);
     }
 
 }

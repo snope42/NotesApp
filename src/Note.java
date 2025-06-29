@@ -5,8 +5,8 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS;
@@ -19,14 +19,14 @@ public class Note extends JFrame {
     String title = "New Note";
     JTextField textField = new JTextField(title);
 
-    int fileCount = 0;
     String path = "src/data/";
     File file;
     boolean isListEmpty = true;
 
-    public Note(Home home) throws IOException {
+    public Note(Home home, boolean isNew, JButton note) throws IOException {
 
-        create();
+        if (isNew) createNote();
+        else openNote(note);
 
         this.setResizable(true);
         this.setTitle("Notes");
@@ -56,7 +56,7 @@ public class Note extends JFrame {
 
                 if (isListEmpty) {
                     isListEmpty = false;
-                    home.defaultText.setVisible(false);
+                    Home.defaultText.setVisible(false);
                 }
 
             }
@@ -127,6 +127,7 @@ public class Note extends JFrame {
         this.add(textField);
 
         this.setVisible(true);
+        home.setVisible(false);
         textArea.requestFocusInWindow();
     }
 
@@ -162,21 +163,25 @@ public class Note extends JFrame {
         textField.setBorder(null);
     }
 
-    void create() throws IOException {
-        file = new File(path + "note-" + fileCount++ + ".txt");
+    void createNote() throws IOException {
+        file = new File(path + "notes/" + (App.count + 1) + ".txt");
 
         boolean created;
-
         if(!file.exists()) created = file.createNewFile();
+
+        App.count++;
+        Files.writeString(App.countFile.toPath(), String.valueOf(App.count));
+    }
+
+    void openNote(JButton note) throws IOException {
+        file = new File(path + "notes/" + note.getText() + ".txt");
+
+        textArea.setText(Files.readString(file.toPath()).trim());
     }
 
     void save() throws IOException {
 
-        try (FileWriter writer = new FileWriter(file)) {
-            writer.write(textArea.getText());
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
+        Files.writeString(file.toPath(), textArea.getText());
 
     }
 
@@ -202,10 +207,7 @@ public class Note extends JFrame {
         int textFieldWidth = Math.min(400, windowWidth - 100);
         int textFieldHeight = Math.max(50, windowHeight / 15);
         textField.setSize(textFieldWidth, textFieldHeight);
-        textField.setLocation(
-                windowWidth / 2 - textFieldWidth / 2,
-                10
-        );
+        textField.setLocation(windowWidth / 2 - textFieldWidth / 2, 10);
 
         int textFieldFontSize = Math.max(16, textFieldHeight / 2);
         textField.setFont(new Font("aFont", Font.BOLD, textFieldFontSize));
