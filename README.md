@@ -10,15 +10,19 @@ Current Features ✅
 - [x] Create simple notes
 - [x] Save notes to file
 - [x] Edit existing notes
-- [ ] Rename existing notes (in progress)
-- [ ] Delete notes (in progress)
+- [x] Delete notes
+- [x] Rename existing notes (needs a rework)
 - [ ] Search functionality (planned)
-- [ ] assets.windows.Note categories (planned)
+- [ ] Note categories (planned)
 
-Issues 📛
-- assets.windows.Note Creation Button UI clashes with the Notes Panel.
-- Window Resizing does not resize components yet.
-- Notes are not sorted in order.
+Changes 👀
+
+- Improved the code for readability and stability.
+- Moved Utility functions into their new own classes.
+- Re-structured classes and packages.
+- Assigned a proper ordering system for notes using queues.
+- Added a drop-down menu for note management when right-clicking one.
+- Implemented renaming and deletion features.
 
 Technologies Used 🛠️
 
