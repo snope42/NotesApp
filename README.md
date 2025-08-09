@@ -12,10 +12,10 @@ Current Features ✅
 - [ ] Edit existing notes (in progress)
 - [ ] Delete notes (planned)
 - [ ] Search functionality (planned)
-- [ ] Note categories (planned)
+- [ ] assets.windows.Note categories (planned)
 
 Issues 📛
-- Note Creation Button UI clashes with the Notes Panel.
+- assets.windows.Note Creation Button UI clashes with the Notes Panel.
 - Window Resizing does not resize components yet.
 
 Technologies Used 🛠️

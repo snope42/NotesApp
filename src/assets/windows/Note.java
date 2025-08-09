@@ -1,3 +1,9 @@
+package assets.windows;
+
+import assets.App;
+import assets.utils.JFrameUtils;
+import assets.utils.VarUtils;
+
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
@@ -15,27 +21,24 @@ public class Note extends JFrame {
 
     JTextArea textArea = new JTextArea();
     JScrollPane scrollPane = new JScrollPane(textArea, VERTICAL_SCROLLBAR_ALWAYS, HORIZONTAL_SCROLLBAR_NEVER);
-    JButton homeButton = new JButton("Home");
-    String title = "New Note";
-    JTextField textField = new JTextField(title);
+    JButton homeButton = new JButton("home");
+    JTextField textField = new JTextField("New note");
 
-    String path = "src/data/";
-    File file;
-    boolean isListEmpty = true;
+    public File noteFile;
+    public static boolean wasNotePanelEmpty = true;
 
-    public Note(Home home, boolean isNew, JButton note) throws IOException {
+    public static final int DEFAULT_WIDTH = (int) (VarUtils.screenDimension.width/1.5);
+    public static final int DEFAULT_HEIGHT = (int) (VarUtils.screenDimension.height/1.5);
 
-        if (isNew) createNote();
-        else openNote(note);
+    public Note(Home home, boolean isNew, JButton note) {
 
-        this.setResizable(true);
-        this.setTitle("Notes");
+        if (isNew) createNoteFile();
+        else fetchNoteContent(note);
 
-        this.setLayout(null);
-        this.setSize((int) (UtilityVariables.screenDimension.width/1.5), (int) (UtilityVariables.screenDimension.height/1.5));
-        this.getContentPane().setBackground(Color.BLACK);
+        JFrameUtils.setupFrame(this, "Notes", DEFAULT_WIDTH, DEFAULT_HEIGHT, true);
 
-        setup();
+        setupUI();
+        this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
         homeButton.addMouseListener(new MouseAdapter() {
             @Override
@@ -45,19 +48,11 @@ public class Note extends JFrame {
 
             @Override
             public void mouseClicked(MouseEvent e) {
-                Note.super.dispose();
-                home.setVisible(true);
 
-                try {
-                    save();
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
+                if (e.getButton() != MouseEvent.BUTTON1) return; // BUTTON1 == Left Click
 
-                if (isListEmpty) {
-                    isListEmpty = false;
-                    Home.defaultText.setVisible(false);
-                }
+                saveNoteContent(noteFile, textArea);
+                switchToHomeTab(Note.this, home);
 
             }
 
@@ -67,46 +62,8 @@ public class Note extends JFrame {
             }
         });
 
-        textField.addFocusListener(new FocusListener() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                textField.setCaretPosition(textField.getText().length());
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-                textField.setCaretPosition(0);
-            }
-        });
-
-        textArea.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                try {
-                    save();
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                try {
-                    save();
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                try {
-                    save();
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }
-        });
+        setTitleCaretPosition(); // Move the caret to the end when editing, and to the front when exiting.
+        listenToContentChanges(noteFile, textArea);
 
         this.addWindowListener(new WindowAdapter() {
             @Override
@@ -115,6 +72,7 @@ public class Note extends JFrame {
             }
         });
 
+        // Manual Window and Component Resizing for Null Layout.
         this.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
@@ -122,16 +80,16 @@ public class Note extends JFrame {
             }
         });
 
-        this.add(scrollPane);
-        this.add(homeButton);
-        this.add(textField);
+        JFrameUtils.addComponentsTo(this, scrollPane, homeButton, textField);
 
         this.setVisible(true);
         home.setVisible(false);
         textArea.requestFocusInWindow();
+
     }
 
-    void setup() {
+    private void setupUI() {
+
         textArea.setMargin(new Insets(10, 10, 10, 10));
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
@@ -161,31 +119,113 @@ public class Note extends JFrame {
         textField.setLocation(this.getWidth()/2 - textField.getWidth()/2, 5);
         textField.setHorizontalAlignment(SwingConstants.CENTER);
         textField.setBorder(null);
+
     }
 
-    void createNote() throws IOException {
-        file = new File(path + "notes/" + (App.count + 1) + ".txt");
+    private void createNoteFile() {
+        noteFile = new File(App.PATH + "notes/" + (App.count +1) + ".txt");
 
         boolean created;
-        if(!file.exists()) created = file.createNewFile();
+        if(!noteFile.exists()) {
+
+            try {
+
+                created = noteFile.createNewFile();
+
+            } catch (IOException e) {
+                System.out.println("Couldn't create file '" + App.PATH + "notes/" + (App.count +1) + ".txt'");
+                return;
+            }
+
+        }
+
+        try {
+            Files.writeString(App.countFile.toPath(), String.valueOf(App.count +1));
+        } catch (IOException e) {
+            System.out.println("The file '" + App.countFile.toPath() + "' does not exist.");
+            return;
+        }
 
         App.count++;
-        Files.writeString(App.countFile.toPath(), String.valueOf(App.count));
-    }
-
-    void openNote(JButton note) throws IOException {
-        file = new File(path + "notes/" + note.getText() + ".txt");
-
-        textArea.setText(Files.readString(file.toPath()).trim());
-    }
-
-    void save() throws IOException {
-
-        Files.writeString(file.toPath(), textArea.getText());
 
     }
 
-    void resize() {
+    public void fetchNoteContent(JButton note) {
+
+        noteFile = new File(App.PATH + "notes/" + note.getText() + ".txt");
+
+        try {
+
+            textArea.setText(Files.readString(noteFile.toPath()).trim());
+
+        } catch (IOException e) {
+            System.out.println("The file '" + noteFile.toPath() + "' does not exist.");
+            return;
+        }
+
+    }
+
+    public static void switchToHomeTab(Note note, Home home) {
+
+        note.dispose();
+        home.setVisible(true);
+
+        if (wasNotePanelEmpty) {
+            wasNotePanelEmpty = false;
+            Home.hideWelcomeText();
+        }
+
+    }
+
+    private void setTitleCaretPosition() {
+
+        textField.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                textField.setCaretPosition(textField.getText().length());
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                textField.setCaretPosition(0);
+            }
+        });
+
+    }
+
+    private void listenToContentChanges(File noteFile, JTextArea textArea) {
+
+        textArea.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                saveNoteContent(noteFile, textArea);
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                saveNoteContent(noteFile, textArea);
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                saveNoteContent(noteFile, textArea);
+            }
+        });
+
+    }
+    public static void saveNoteContent(File noteFile, JTextArea textArea) {
+
+        try {
+
+            Files.writeString(noteFile.toPath(), textArea.getText());
+
+        } catch (IOException e) {
+            System.out.println("The file '" + noteFile.toPath() + "' does not exist.");
+        }
+
+    }
+
+    public void resize() {
         int windowWidth = Note.super.getWidth();
         int windowHeight = Note.super.getHeight();
 
