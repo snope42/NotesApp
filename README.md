@@ -8,15 +8,17 @@ Current Features ✅
 
 - [x] Basic GUI layout
 - [x] Create simple notes
-- [ ] Save notes to file (in progress)
-- [ ] Edit existing notes (in progress)
-- [ ] Delete notes (planned)
+- [x] Save notes to file
+- [x] Edit existing notes
+- [ ] Rename existing notes (in progress)
+- [ ] Delete notes (in progress)
 - [ ] Search functionality (planned)
 - [ ] assets.windows.Note categories (planned)
 
 Issues 📛
 - assets.windows.Note Creation Button UI clashes with the Notes Panel.
 - Window Resizing does not resize components yet.
+- Notes are not sorted in order.
 
 Technologies Used 🛠️
 
