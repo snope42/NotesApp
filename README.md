@@ -12,16 +12,13 @@ Current Features ✅
 - [x] Edit existing notes
 - [x] Delete notes
 - [x] Rename existing notes (needs a rework)
-- [ ] Sort options (in progress)
 - [ ] Undo/Redo functionality (in progress)
+- [ ] Sort options (in progress)
 - [ ] Search functionality (planned)
 - [ ] Note categories (planned)
-- [ ] Text customization (planned)
 - [ ] Import/export files (planned)
 - [ ] Note preview (planned)
-- [ ] Note bin (planned)
 - [ ] Note nesting (planned)
-- [ ] Thread-safety (planned)
 
 Changes 👀
 
